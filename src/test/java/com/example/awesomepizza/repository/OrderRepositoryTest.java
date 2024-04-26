@@ -7,10 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -64,21 +61,21 @@ class OrderRepositoryTest {
     }
 
     @Test
-    void findById() {
+    void findByOrderId() {
         Order newOrder = new Order();
         newOrder.setPizzaType("Hawaiian");
         newOrder.setStatus("ready");
         entityManager.persist(newOrder);
         entityManager.flush();
 
-        Optional<Order> foundOrder = orderRepository.findById(newOrder.getOrderId());
+        Optional<Order> foundOrder = orderRepository.findByOrderId(newOrder.getOrderId());
         assertTrue(foundOrder.isPresent());
         assertEquals("Hawaiian", foundOrder.get().getPizzaType());
     }
 
     @Test
-    void findById_NotFound() {
-        Optional<Order> foundOrder = orderRepository.findById(-999); // using a non-existent ID
+    void findByOrderId_NotFound() {
+        Optional<Order> foundOrder = orderRepository.findByOrderId(-999); // using a non-existent ID
         assertFalse(foundOrder.isPresent());
     }
 }

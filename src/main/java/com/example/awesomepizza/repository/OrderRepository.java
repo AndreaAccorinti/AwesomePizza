@@ -26,5 +26,5 @@ public interface OrderRepository extends JpaRepository<Order, String>, JpaSpecif
      * @param orderId The unique identifier of the order to find.
      * @return An Optional containing the order if found, or an empty Optional if no order matches the given identifier.
      */
-    Optional<Order> findById(@Param("orderId") Integer orderId);
+    Optional<Order> findByOrderId(@Param("orderId") Integer orderId);
 }

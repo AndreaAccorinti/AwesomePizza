@@ -85,7 +85,7 @@ class OrderServiceTest {
         expectedOrder.setPizzaType("Margherita");
         expectedOrder.setStatus("pending");
 
-        when(orderRepository.findById(orderId)).thenReturn(java.util.Optional.of(expectedOrder));
+        when(orderRepository.findByOrderId(orderId)).thenReturn(java.util.Optional.of(expectedOrder));
 
         // Action
         Order foundOrder = orderService.getOrderById(orderId);
@@ -96,7 +96,7 @@ class OrderServiceTest {
         assertEquals("Margherita", foundOrder.getPizzaType());
         assertEquals("pending", foundOrder.getStatus());
 
-        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, times(1)).findByOrderId(orderId);
     }
 
     @Test
@@ -104,7 +104,7 @@ class OrderServiceTest {
         // Test setup
         Integer orderId = 1;
 
-        when(orderRepository.findById(orderId)).thenReturn(java.util.Optional.empty());
+        when(orderRepository.findByOrderId(orderId)).thenReturn(java.util.Optional.empty());
 
         // Action
         Order foundOrder = orderService.getOrderById(orderId);
@@ -112,7 +112,7 @@ class OrderServiceTest {
         // Verification
         assertNull(foundOrder);
 
-        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, times(1)).findByOrderId(orderId);
     }
 
     @Test
@@ -127,7 +127,7 @@ class OrderServiceTest {
         existingOrder.setPizzaType("Margherita");
         existingOrder.setStatus("pending");
 
-        when(orderRepository.findById(orderId)).thenReturn(java.util.Optional.of(existingOrder));
+        when(orderRepository.findByOrderId(orderId)).thenReturn(java.util.Optional.of(existingOrder));
         when(orderRepository.save(any())).thenReturn(existingOrder);
 
         // Action
@@ -137,7 +137,7 @@ class OrderServiceTest {
         assertTrue(statusUpdated);
         assertEquals("ready", existingOrder.getStatus());
 
-        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, times(1)).findByOrderId(orderId);
         verify(orderRepository, times(1)).save(any());
     }
 
@@ -148,7 +148,7 @@ class OrderServiceTest {
         UpdateOrderStatusRequest updateOrderStatusRequest = new UpdateOrderStatusRequest();
         updateOrderStatusRequest.setStatus("ready");
 
-        when(orderRepository.findById(orderId)).thenReturn(java.util.Optional.empty());
+        when(orderRepository.findByOrderId(orderId)).thenReturn(java.util.Optional.empty());
 
         // Action
         boolean statusUpdated = orderService.updateOrderStatus(orderId, updateOrderStatusRequest);
@@ -156,7 +156,7 @@ class OrderServiceTest {
         // Verification
         assertFalse(statusUpdated);
 
-        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderRepository, times(1)).findByOrderId(orderId);
         verify(orderRepository, never()).save(any());
     }
 

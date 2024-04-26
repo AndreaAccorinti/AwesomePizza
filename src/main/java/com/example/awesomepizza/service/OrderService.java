@@ -57,7 +57,7 @@ public class OrderService {
      */
     public Order getOrderById(Integer orderId) {
         // Business logic to retrieve order by ID
-        return orderRepository.findById(orderId).orElse(null);
+        return orderRepository.findByOrderId(orderId).orElse(null);
     }
 
     /**
@@ -68,7 +68,7 @@ public class OrderService {
      * @return True if the order status is updated successfully, otherwise false.
      */
     public boolean updateOrderStatus(Integer orderId, UpdateOrderStatusRequest updateOrderStatusRequest) {
-        Order order = orderRepository.findById(orderId).orElse(null);
+        Order order = orderRepository.findByOrderId(orderId).orElse(null);
         if (order != null) {
             order.setStatus(String.valueOf(updateOrderStatusRequest.getStatus()));
             orderRepository.save(order);
