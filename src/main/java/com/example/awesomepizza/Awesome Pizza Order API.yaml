@@ -1,9 +1,142 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
-  title: $Title$
-  description: $Title$
-  version: 1.0.0
+  title: Awesome Pizza Order API
+  version: "1.0"
+  description: API for managing pizza orders at Awesome Pizza. Allows customers to place orders and track their status without registration. The pizzaiolo can manage and update the status of orders.
+  contact:
+    name: Awesome Pizza Support
+    email: support@awesomepizza.com
+
 servers:
-  - url: '$https$'
+  - url: "http://localhost:8080/api"
+    description: Development server
+
+tags:
+  - name: Customer
+    description: Operations available to customers
+  - name: Pizzaiolo
+    description: Operations available to the pizzaiolo
+
 paths:
-  $END$
+  /orders:
+    post:
+      tags:
+        - Customer
+      summary: Place a new pizza order
+      operationId: placeOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '201':
+          description: Order successfully placed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+
+    get:
+      tags:
+        - Pizzaiolo
+      summary: Get the first pending order
+      operationId: getFirstPendingOrder
+      responses:
+        '200':
+          description: The first pending order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: No pending orders found
+
+  /orders/{orderId}:
+    get:
+      tags:
+        - Customer
+      summary: Get order by ID
+      operationId: getOrderById
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detailed information about an order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Order not found
+
+    put:
+      tags:
+        - Pizzaiolo
+      summary: Update the status of an order
+      operationId: updateOrderStatus
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, ready, completed]
+                  description: New status of the order
+      responses:
+        '200':
+          description: Order status updated
+        '404':
+          description: Order not found
+
+components:
+  schemas:
+    OrderRequest:
+      type: object
+      required:
+        - pizzaType
+        - toppings
+      properties:
+        pizzaType:
+          type: string
+          description: Type of the pizza
+        toppings:
+          type: array
+          items:
+            type: string
+          description: List of toppings
+
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: Unique identifier for the order
+        pizzaType:
+          type: string
+          description: Type of the pizza
+        toppings:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [pending, ready, completed]
+          description: Current status of the order
+
