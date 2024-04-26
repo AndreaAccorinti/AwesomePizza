@@ -18,6 +18,7 @@ public class OrderTopping {
      */
     @EmbeddedId
     private OrderToppingId id;
+private String toppingName;
 
     /**
      * The order this topping is associated with.
@@ -69,4 +70,11 @@ public class OrderTopping {
         this.order = order;
     }
 
+    public String getToppingName() {
+        return toppingName;
+    }
+
+    public void setToppingName(String toppingName) {
+        this.toppingName = toppingName;
+    }
 }
