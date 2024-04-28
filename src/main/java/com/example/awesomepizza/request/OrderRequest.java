@@ -3,7 +3,9 @@ package com.example.awesomepizza.request;
 import java.util.List;
 
 /**
- * Represents a request object for placing a pizza order.
+ * Request data transfer object for creating a new pizza order.
+ * This class captures details about the pizza type and its toppings,
+ * which are used in the order placement process.
  */
 public class OrderRequest {
 
@@ -11,36 +13,36 @@ public class OrderRequest {
     private List<String> toppings;
 
     /**
-     * Gets the type of pizza.
+     * Retrieves the type of pizza specified in the order.
      *
-     * @return The type of pizza.
+     * @return the type of pizza as a String
      */
     public String getPizzaType() {
         return pizzaType;
     }
 
     /**
-     * Sets the type of pizza.
+     * Specifies the type of pizza for the order.
      *
-     * @param pizzaType The type of pizza to set.
+     * @param pizzaType the type of pizza to be included in the order
      */
     public void setPizzaType(String pizzaType) {
         this.pizzaType = pizzaType;
     }
 
     /**
-     * Gets the list of toppings.
+     * Retrieves the list of toppings chosen for the pizza.
      *
-     * @return The list of toppings.
+     * @return a list of toppings as Strings
      */
     public List<String> getToppings() {
         return toppings;
     }
 
     /**
-     * Sets the list of toppings.
+     * Sets the toppings for the pizza.
      *
-     * @param toppings The list of toppings to set.
+     * @param toppings a list of toppings to add to the pizza
      */
     public void setToppings(List<String> toppings) {
         this.toppings = toppings;

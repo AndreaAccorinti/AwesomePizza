@@ -3,6 +3,7 @@ package com.example.awesomepizza.service;
 import com.example.awesomepizza.models.Order;
 import com.example.awesomepizza.models.OrderTopping;
 import com.example.awesomepizza.repository.OrderRepository;
+import com.example.awesomepizza.repository.OrderToppingRepository;
 import com.example.awesomepizza.request.OrderRequest;
 import com.example.awesomepizza.request.UpdateOrderStatusRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -21,11 +22,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests for {@link OrderService} focusing on validating the functionality for creating, retrieving,
+ * and updating orders using mocks for dependencies like {@link OrderRepository} and {@link OrderToppingRepository}.
+ */
 class OrderServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
-
+    @Mock
+    private OrderToppingRepository orderToppingRepository;
     @InjectMocks
     private OrderService orderService;
 
@@ -38,9 +44,14 @@ class OrderServiceTest {
     void tearDown() {
     }
 
+    /**
+     * Test the placeOrder method to ensure it processes a valid order request correctly.
+     * Verifies that an order with the correct properties is created and saved, and all associated toppings
+     * are also correctly handled.
+     */
     @Test
     void placeOrder_ValidOrderRequest_ReturnsCreatedOrder() {
-        // Test setup
+        // Setup
         OrderRequest orderRequest = new OrderRequest();
         orderRequest.setPizzaType("Margherita");
         List<String> toppings = new ArrayList<>();
@@ -48,7 +59,6 @@ class OrderServiceTest {
         toppings.add("Tomato");
         orderRequest.setToppings(toppings);
 
-        // Create a set of OrderTopping entities for the toppings
         Set<OrderTopping> orderToppings = new HashSet<>();
         for (String topping : toppings) {
             OrderTopping orderTopping = new OrderTopping();
@@ -58,27 +68,33 @@ class OrderServiceTest {
 
         Order expectedOrder = new Order();
         expectedOrder.setPizzaType("Margherita");
-        expectedOrder.setOrderToppings(orderToppings); // Set the order toppings as a set of OrderTopping entities
+        expectedOrder.setOrderToppings(orderToppings);
         expectedOrder.setStatus("pending");
 
-        when(orderRepository.save(any())).thenReturn(expectedOrder);
 
-        // Action
+        when(orderRepository.save(any(Order.class))).thenReturn(expectedOrder);
+        when(orderToppingRepository.saveAll(any())).thenReturn(new ArrayList<>(orderToppings));
+
+        // Act
         Order createdOrder = orderService.placeOrder(orderRequest);
 
-        // Verification
+        // Assert
         assertNotNull(createdOrder);
         assertEquals("Margherita", createdOrder.getPizzaType());
-        assertEquals(orderToppings, createdOrder.getOrderToppings());
         assertEquals("pending", createdOrder.getStatus());
+        assertEquals(2, createdOrder.getOrderToppings().size());
+        verify(orderToppingRepository, times(1)).saveAll(any());
+        verify(orderRepository, times(2)).save(any(Order.class));
 
-        verify(orderRepository, times(1)).save(any());
     }
 
 
+    /**
+     * Test the getOrderById method to retrieve an existing order.
+     * Ensures the correct order is returned if it exists.
+     */
     @Test
     void getOrderById_OrderExists_ReturnsOrder() {
-        // Test setup
         Integer orderId = 1;
         Order expectedOrder = new Order();
         expectedOrder.setOrderId(orderId);
@@ -87,10 +103,8 @@ class OrderServiceTest {
 
         when(orderRepository.findByOrderId(orderId)).thenReturn(java.util.Optional.of(expectedOrder));
 
-        // Action
         Order foundOrder = orderService.getOrderById(orderId);
 
-        // Verification
         assertNotNull(foundOrder);
         assertEquals(orderId, foundOrder.getOrderId());
         assertEquals("Margherita", foundOrder.getPizzaType());
@@ -99,25 +113,28 @@ class OrderServiceTest {
         verify(orderRepository, times(1)).findByOrderId(orderId);
     }
 
+    /**
+     * Test the getOrderById method to check behavior when no order exists for a given ID.
+     * Ensures null is returned.
+     */
     @Test
     void getOrderById_OrderDoesNotExist_ReturnsNull() {
-        // Test setup
         Integer orderId = 1;
 
         when(orderRepository.findByOrderId(orderId)).thenReturn(java.util.Optional.empty());
 
-        // Action
         Order foundOrder = orderService.getOrderById(orderId);
 
-        // Verification
         assertNull(foundOrder);
-
         verify(orderRepository, times(1)).findByOrderId(orderId);
     }
 
+    /**
+     * Test the updateOrderStatus method to ensure it updates the status of an existing order.
+     * Verifies the method returns true and the order's status is updated successfully.
+     */
     @Test
     void updateOrderStatus_OrderExists_StatusUpdatedSuccessfully_ReturnsTrue() {
-        // Test setup
         Integer orderId = 1;
         UpdateOrderStatusRequest updateOrderStatusRequest = new UpdateOrderStatusRequest();
         updateOrderStatusRequest.setStatus("ready");
@@ -128,41 +145,41 @@ class OrderServiceTest {
         existingOrder.setStatus("pending");
 
         when(orderRepository.findByOrderId(orderId)).thenReturn(java.util.Optional.of(existingOrder));
-        when(orderRepository.save(any())).thenReturn(existingOrder);
+        when(orderRepository.save(any(Order.class))).thenReturn(existingOrder);
 
-        // Action
         boolean statusUpdated = orderService.updateOrderStatus(orderId, updateOrderStatusRequest);
 
-        // Verification
         assertTrue(statusUpdated);
         assertEquals("ready", existingOrder.getStatus());
 
         verify(orderRepository, times(1)).findByOrderId(orderId);
-        verify(orderRepository, times(1)).save(any());
+        verify(orderRepository, times(1)).save(any(Order.class));
     }
 
+    /**
+     * Test the updateOrderStatus method to check behavior when no order exists for the given ID.
+     * Verifies the method returns false.
+     */
     @Test
     void updateOrderStatus_OrderDoesNotExist_ReturnsFalse() {
-        // Test setup
         Integer orderId = 1;
         UpdateOrderStatusRequest updateOrderStatusRequest = new UpdateOrderStatusRequest();
         updateOrderStatusRequest.setStatus("ready");
 
         when(orderRepository.findByOrderId(orderId)).thenReturn(java.util.Optional.empty());
 
-        // Action
         boolean statusUpdated = orderService.updateOrderStatus(orderId, updateOrderStatusRequest);
 
-        // Verification
         assertFalse(statusUpdated);
-
         verify(orderRepository, times(1)).findByOrderId(orderId);
         verify(orderRepository, never()).save(any());
     }
 
+    /**
+     * Test the getFirstPendingOrder method to verify it returns a pending order when one exists.
+     */
     @Test
     void getFirstPendingOrder_PendingOrderExists_ReturnsOrder() {
-        // Test setup
         Order pendingOrder = new Order();
         pendingOrder.setOrderId(1);
         pendingOrder.setPizzaType("Margherita");
@@ -170,28 +187,26 @@ class OrderServiceTest {
 
         when(orderRepository.findFirstByStatusPending()).thenReturn(java.util.Optional.of(pendingOrder));
 
-        // Action
         Order foundOrder = orderService.getFirstPendingOrder();
 
-        // Verification
         assertNotNull(foundOrder);
         assertEquals(pendingOrder, foundOrder);
 
         verify(orderRepository, times(1)).findFirstByStatusPending();
     }
 
+    /**
+     * Test the getFirstPendingOrder method to check behavior when no pending orders exist.
+     * Ensures the method returns null.
+     */
     @Test
     void getFirstPendingOrder_NoPendingOrder_ReturnsNull() {
-        // Test setup
         when(orderRepository.findFirstByStatusPending()).thenReturn(java.util.Optional.empty());
 
-        // Action
         Order foundOrder = orderService.getFirstPendingOrder();
 
-        // Verification
         assertNull(foundOrder);
 
         verify(orderRepository, times(1)).findFirstByStatusPending();
     }
-
 }

@@ -3,6 +3,7 @@ package com.example.awesomepizza.service;
 import com.example.awesomepizza.models.Order;
 import com.example.awesomepizza.models.OrderTopping;
 import com.example.awesomepizza.repository.OrderRepository;
+import com.example.awesomepizza.repository.OrderToppingRepository;
 import com.example.awesomepizza.request.OrderRequest;
 import com.example.awesomepizza.request.UpdateOrderStatusRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,65 +13,76 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Service class for managing pizza orders.
+ * Service for handling operations related to pizza orders.
+ * Provides methods for creating, retrieving, and updating pizza orders,
+ * leveraging {@link OrderRepository} and {@link OrderToppingRepository} for persistence.
  */
 @Service
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderToppingRepository orderToppingRepository;
 
+    /**
+     * Constructs an instance of OrderService with necessary repository dependencies.
+     *
+     * @param orderRepository        Repository for accessing and manipulating Order entities.
+     * @param orderToppingRepository Repository for accessing and manipulating OrderTopping entities.
+     */
     @Autowired
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, OrderToppingRepository orderToppingRepository) {
         this.orderRepository = orderRepository;
+        this.orderToppingRepository = orderToppingRepository;
     }
 
     /**
-     * Places a new pizza order.
+     * Creates and saves a new pizza order based on provided order details.
+     * Initializes the order status to "pending" and processes the list of toppings.
      *
-     * @param orderRequest The request containing order details.
-     * @return The created order.
+     * @param orderRequest The request containing details for the new order.
+     * @return The newly created order with toppings saved and linked.
      */
     public Order placeOrder(OrderRequest orderRequest) {
-        // Business logic to create and save the order
         Order order = new Order();
         order.setPizzaType(orderRequest.getPizzaType());
+        order.setStatus("pending");
 
-        // Convert list of topping strings to set of OrderTopping entities
+        order = orderRepository.save(order);
+
         Set<OrderTopping> orderToppings = new HashSet<>();
         for (String topping : orderRequest.getToppings()) {
             OrderTopping orderTopping = new OrderTopping();
             orderTopping.setToppingName(topping);
-            orderTopping.setOrder(order); // Set the order for each topping
+            orderTopping.setOrder(order);
             orderToppings.add(orderTopping);
         }
 
+        orderToppingRepository.saveAll(orderToppings);
         order.setOrderToppings(orderToppings);
-        order.setStatus("pending");
         return orderRepository.save(order);
     }
 
     /**
-     * Retrieves an order by its ID.
+     * Retrieves an order by its unique identifier.
      *
-     * @param orderId The ID of the order to retrieve.
-     * @return The order if found, otherwise null.
+     * @param orderId The unique identifier of the order to be retrieved.
+     * @return An optional Order if found; otherwise, returns null.
      */
     public Order getOrderById(Integer orderId) {
-        // Business logic to retrieve order by ID
         return orderRepository.findByOrderId(orderId).orElse(null);
     }
 
     /**
-     * Updates the status of an order.
+     * Updates the status of an existing order based on provided status information.
      *
-     * @param orderId                 The ID of the order to update.
-     * @param updateOrderStatusRequest The request containing the updated status.
-     * @return True if the order status is updated successfully, otherwise false.
+     * @param orderId                  The identifier of the order to update.
+     * @param updateOrderStatusRequest The request containing the new status for the order.
+     * @return true if the status update is successful, false if the order does not exist.
      */
     public boolean updateOrderStatus(Integer orderId, UpdateOrderStatusRequest updateOrderStatusRequest) {
         Order order = orderRepository.findByOrderId(orderId).orElse(null);
         if (order != null) {
-            order.setStatus(String.valueOf(updateOrderStatusRequest.getStatus()));
+            order.setStatus(updateOrderStatusRequest.getStatus());
             orderRepository.save(order);
             return true;
         }
@@ -78,9 +90,9 @@ public class OrderService {
     }
 
     /**
-     * Retrieves the first pending order.
+     * Retrieves the first order marked as "pending" in the system.
      *
-     * @return The first pending order if found, otherwise null.
+     * @return An optional Order if a pending one is found; otherwise, returns null.
      */
     public Order getFirstPendingOrder() {
         return orderRepository.findFirstByStatusPending().orElse(null);
