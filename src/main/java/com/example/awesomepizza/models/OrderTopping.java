@@ -27,7 +27,7 @@ public class OrderTopping {
      * Name of the topping. This is a simple string representing the topping added to the pizza,
      * such as "Cheese", "Pepperoni", etc.
      */
-    @Column(name = "topping_name", nullable = false) // Ensuring that the topping name cannot be null.
+    @Column(name = "topping_name", nullable = false)
     private String toppingName;
 
     /**
@@ -38,7 +38,7 @@ public class OrderTopping {
      * {@link OnDelete} with { OnDeleteAction.CASCADE} ensures that deleting an {@link Order}  will automatically
      * delete all associated {@link OrderTopping} , maintaining referential integrity.
      */
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonBackReference
